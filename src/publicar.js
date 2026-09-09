@@ -4,20 +4,44 @@ import { cfg, log } from './config.js';
 
 const API = 'https://api.upload-post.com/api';
 
-const HASHTAGS = [
-  '#poesia', '#poemas', '#motivacion', '#reflexiones', '#frasesdelavida',
-  '#parati', '#fyp', '#inspiracion', '#versos', '#buenosdias',
-];
+/**
+ * Hashtags FIJOS de la cuenta. Composición deliberada:
+ *   #poesia            amplio de categoría, da volumen
+ *   #poemascortos      de nicho, con intención de búsqueda real
+ *   #poesiaenespanol   acota al público que entiende el contenido
+ *   #tintaypapel       de marca: hoy no lo usa nadie, en unos meses es
+ *                      el catálogo de la cuenta
+ *
+ * A estos se suman DOS que cambian cada día: el del tema del poema (lo genera
+ * el modelo) y el de la fecha.
+ *
+ * NO agregar #fyp, #parati, #viral ni #foryou: los usa todo el mundo y no
+ * posicionan en ningún lado.
+ */
+const HASHTAGS_FIJOS = ['#poesia', '#poemascortos', '#poesiaenespanol', '#tintaypapel'];
 
-/** Elige 6 hashtags al azar del catálogo */
+/** Los hashtags fijos de la cuenta */
 export function hashtagsDe() {
-  return [...HASHTAGS].sort(() => Math.random() - 0.5).slice(0, 6);
+  return [...HASHTAGS_FIJOS];
 }
 
-/** Construye el texto que acompaña al video en TikTok */
-export function caption(poema, fechaLarga, hashtags = hashtagsDe()) {
-  const cuerpo = poema.versos.join('\n');
-  let txt = `${cuerpo}\n\n✨ ${fechaLarga.toLowerCase()}\n\n${hashtags.join(' ')}`;
+/**
+ * Construye el texto que acompaña al video.
+ *
+ * Estructura: versos · pregunta · hashtags. La pregunta va porque los
+ * comentarios son la señal más fuerte del algoritmo, y una que salga del poema
+ * genera mucho más que un "¿te gustó?".
+ */
+export function caption(poema, fechaLarga, hashtags = hashtagsDe(), hashtagFecha = '') {
+  const etiquetas = [...hashtags];
+  if (poema.hashtagTema) etiquetas.splice(2, 0, poema.hashtagTema);
+  if (hashtagFecha) etiquetas.push(hashtagFecha);
+
+  const partes = [poema.versos.join('\n')];
+  if (poema.pregunta) partes.push(poema.pregunta);
+  partes.push(etiquetas.join(' '));
+
+  let txt = partes.join('\n\n');
   if (txt.length > 2100) txt = txt.slice(0, 2100);
   return txt;
 }

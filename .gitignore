@@ -2,6 +2,7 @@ node_modules/
 .env
 salidas/*.mp4
 salidas/*.png
+salidas/*.txt
 !salidas/.gitkeep
 *.log
 prueba-visual.mjs

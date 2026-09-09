@@ -5,6 +5,8 @@
  *   node src/index.js            genera y publica
  *   node src/index.js --dry-run  genera pero NO publica
  */
+import fs from 'node:fs';
+import path from 'node:path';
 import { cfg, log, hoy } from './config.js';
 import { generarPoema } from './poema.js';
 import { renderizar } from './render.js';
@@ -14,7 +16,7 @@ import { registrarPoema, marcarPublicado, marcarFallido } from './supabase.js';
 const seco = process.argv.includes('--dry-run') || !cfg.publicar;
 
 async function main() {
-  const { iso, hora, largo } = hoy();
+  const { iso, hora, largo, hashtagFecha } = hoy();
   log(`━━━ Poema del día · ${largo} ━━━`);
 
   // 1) El poema
@@ -28,7 +30,13 @@ async function main() {
 
   // 3) El texto de la publicación
   const hashtags = hashtagsDe();
-  const texto = caption(poema, largo, hashtags);
+  const texto = caption(poema, largo, hashtags, hashtagFecha);
+
+  // Se guarda junto al video, para copiar y pegar al publicar a mano.
+  // Viaja dentro del artefacto de GitHub Actions.
+  const rutaTexto = path.join(cfg.rutas.salidas, `caption_${iso}.txt`);
+  fs.writeFileSync(rutaTexto, texto + '\n', 'utf8');
+  log(`📝 Caption guardado: ${path.basename(rutaTexto)}`);
 
   // 4) Registro en Supabase — antes de publicar, para que quede
   //    constancia incluso si la publicación falla

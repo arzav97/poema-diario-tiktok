@@ -2,9 +2,13 @@ name: Poema del día → TikTok
 
 on:
   schedule:
-    # 15:00 UTC = 9:00 AM en Ciudad de México (UTC-6, horario estándar)
-    # ⚠️ México ya no aplica horario de verano, así que 15:00 UTC es 9am todo el año.
-    - cron: '0 15 * * *'
+    # 03:00 UTC = 21:00 (9 PM) del día ANTERIOR en Ciudad de México (UTC-6)
+    # ⚠️ México ya no aplica horario de verano, así que la equivalencia es fija.
+    #
+    # Corre de noche a propósito: el video queda listo para publicarse a mano
+    # después de medianoche, ya en el día siguiente. Por eso hoy() estampa la
+    # fecha de MAÑANA cuando la hora local pasó del mediodía (ver src/config.js).
+    - cron: '0 3 * * *'
   workflow_dispatch:        # botón para lanzarlo a mano desde la pestaña Actions
     inputs:
       solo_probar:
@@ -52,7 +56,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: video-del-dia
-          path: salidas/*.mp4
+          path: |
+            salidas/*.mp4
+            salidas/*.txt
           retention-days: 14
           if-no-files-found: warn
 

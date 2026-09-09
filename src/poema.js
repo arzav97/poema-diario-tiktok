@@ -65,8 +65,21 @@ REGLAS ESTRICTAS:
 Estos son los últimos poemas publicados, NO te repitas ni en imágenes ni en estructura:
 ${historial.slice(-8).map(h => h.versos.join(' / ')).join('\n') || '(ninguno todavía)'}
 
+Además del poema necesito dos cosas para la publicación:
+
+1. Una PREGUNTA para el pie de la publicación. Debe salir del poema mismo, no ser
+   genérica. Usa alguna palabra o imagen del poema. Que sea fácil de responder en
+   una frase corta, personal, y que invite a contar algo. Máximo 60 caracteres.
+   Ejemplos del estilo buscado: "¿Con qué te falta hacer las paces?",
+   "¿Qué estás remendando en silencio?", "¿A qué ritmo necesitas ir hoy?".
+
+2. Un HASHTAG del tema concreto de este poema, en español, sin acentos ni espacios,
+   en minúsculas, empezando con #. Que describa el TEMA, no la categoría: no sirven
+   "#poesia" ni "#versos" ni "#motivacion", que ya se ponen aparte. Sí sirven cosas
+   como "#amorpropio", "#sanar", "#confiaenti", "#confiaenelproceso", "#paciencia".
+
 Responde ÚNICAMENTE con un objeto JSON válido, sin texto adicional ni bloques de código:
-{"versos": ["...", "...", "...", "..."], "titulo_corto": "3 o 4 palabras para el caption"}`;
+{"versos": ["...", "...", "...", "..."], "titulo_corto": "3 o 4 palabras para el caption", "pregunta": "...", "hashtag_tema": "#..."}`;
 
   const usado = { modelo: null };
   const texto = cfg.anthropicKey
@@ -86,6 +99,15 @@ Responde ÚNICAMENTE con un objeto JSON válido, sin texto adicional ni bloques 
     .slice(0, 4);
 
   if (poema.versos.length < 3) throw new Error('El poema salió con menos de 3 versos');
+
+  // Pregunta y hashtag del tema: si el modelo no los devuelve, el caption
+  // igual se arma sin ellos. Nunca deben tumbar la generación.
+  poema.pregunta = String(poema.pregunta || '').replace(/\s+/g, ' ').trim().slice(0, 80);
+  poema.hashtagTema = String(poema.hashtag_tema || '')
+    .toLowerCase().trim()
+    .replace(/^#*/, '#')
+    .replace(/[^#a-z0-9ñ]/g, '');
+  if (poema.hashtagTema.length < 4) poema.hashtagTema = '';
 
   const largo = poema.versos.find(v => v.length > 48);
   if (largo) log(`⚠️  Verso largo (${largo.length} car.), se reducirá el tamaño de letra: "${largo}"`);

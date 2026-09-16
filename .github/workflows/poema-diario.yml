@@ -9,6 +9,15 @@ on:
     # después de medianoche, ya en el día siguiente. Por eso hoy() estampa la
     # fecha de MAÑANA cuando la hora local pasó del mediodía (ver src/config.js).
     - cron: '0 3 * * *'
+  # Disparador manual por archivo. El botón "Run workflow" de GitHub a veces no
+  # se pinta en la interfaz; esto no depende de la interfaz. Para lanzarlo:
+  #   echo (Get-Date) > datos\.disparar
+  #   git add datos/.disparar && git commit -m "Disparar" && git push
+  # Filtrado por ruta, así el commit diario de historial.json no lo re-dispara.
+  push:
+    paths:
+      - 'datos/.disparar'
+
   workflow_dispatch:        # botón para lanzarlo a mano desde la pestaña Actions
     inputs:
       solo_probar:
